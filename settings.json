@@ -1,0 +1,15 @@
+{
+  "settings": {
+    "removeTrailingWhitespace": true,
+    "insertNewLineAtTheEndOfFile": "true",
+    "removeEmptyLinesAtTheBeginning": "true",
+    "removeEmptyLinesAtTheEnd": "true",
+    "removeSpacesBetweenParens": "true"
+  },
+  "rules": {
+    "fn": {
+      "specialArguments": [],
+      "otherArguments": "list"
+    }
+  }
+}
