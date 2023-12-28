@@ -13,8 +13,8 @@ struct OwnedToken {
 impl<'a> From<Token<'a>> for OwnedToken {
     fn from(value: Token) -> Self {
         OwnedToken {
-            data: value.data.to_owned(),
-            kind: value.kind
+            data: value.value().to_owned(),
+            kind: value.kind()
         }
     }
 }
@@ -50,6 +50,7 @@ fn main() {
     kvs.sort_unstable_by_key(|(_, v)| **v);
     let kvs: Vec<(&OwnedToken, &usize)> = kvs.iter()
         .rev()
+        .filter(|(tok, _)| tok.kind != TokenType::Whitespace)
         .take(40)
         .cloned()
         .collect();

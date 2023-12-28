@@ -1,6 +1,6 @@
 use crate::characters;
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum TokenType {
     Error,
     LBrace,
@@ -24,15 +24,33 @@ pub enum TokenType {
     String
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Token<'a> {
-    pub data: &'a str,
-    pub kind: TokenType,
+    data: &'a str,
+    kind: TokenType,
 }
 
 impl<'a> Token<'a> {
     pub fn new(data: &'a str, kind: TokenType) -> Token<'a> {
         Token { data, kind }
+    }
+    
+    pub fn kind(&self) -> TokenType {
+        self.kind
+    }
+    
+    pub fn value(&self) -> &'a str {
+        self.data
+    }
+    
+    pub fn is_left(&self) -> bool {
+        use TokenType::*;
+        matches!(self.kind(), LBrace | LParen | LBracket)
+    }
+
+    pub fn is_right(&self) -> bool {
+        use TokenType::*;
+        matches!(self.kind(), RBrace | RParen | RBracket)
     }
 }
 
@@ -52,8 +70,8 @@ impl From<characters::SimpleStructural> for TokenType {
             characters::SimpleStructural::RPar => TokenType::RParen,
             characters::SimpleStructural::LBrace => TokenType::LBrace,
             characters::SimpleStructural::RBrace => TokenType::RBrace,
-            characters::SimpleStructural::LBracket => TokenType::LBrace,
-            characters::SimpleStructural::RBracket => TokenType::RBrace,
+            characters::SimpleStructural::LBracket => TokenType::LBracket,
+            characters::SimpleStructural::RBracket => TokenType::RBracket,
             characters::SimpleStructural::Backtick => TokenType::SynQuote,
             characters::SimpleStructural::Caret => TokenType::Metadata,
             characters::SimpleStructural::At => TokenType::Deref,
