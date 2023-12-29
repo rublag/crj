@@ -1,0 +1,107 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose --release --target x86_64-unknown-linux-gnu
+    - name: Run tests
+      run: cargo test --verbose --release --target x86_64-unknown-linux-gnu
+    - name: upload
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: cljindent-x86_64-unknown-linux-gnu
+        path: target/x86_64-unknown-linux-gnu/release/cljindent
+        
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose --release --target x86_64-pc-windows-msvc
+    - name: Run tests
+      run: cargo test --verbose --release --target x86_64-pc-windows-msvc
+    - name: upload
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: cljindent-x86_64-pc-windows-msvc
+        path: target/x86_64-pc-windows-msvc/release/cljindent.exe
+
+  build-macos-x86:
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose --release --target x86_64-apple-darwin
+    - name: Run tests
+      run: cargo test --verbose --release --target x86_64-apple-darwin
+    - name: upload
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: cljindent-x86_64-apple-darwin
+        path: target/x86_64-apple-darwin/release/cljindent
+  
+  build-macos-aarch64:
+    runs-on: macOS-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install compiler
+      run: rustup target add aarch64-apple-darwin
+    - name: Build
+      run: cargo build --verbose --release --target aarch64-apple-darwin
+    - name: upload
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: cljindent-aarch64-apple-darwin
+        path: target/aarch64-apple-darwin/release/cljindent
+
+  publish:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    needs:
+      - build-linux
+      - build-windows
+      - build-macos-x86
+      - build-macos-aarch64
+
+    steps:
+    - name: download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist
+    - name: zip and rename
+      run: |
+        mkdir -p upload &&
+        cp dist/cljindent-aarch64-apple-darwin/cljindent upload/cljindent-aarch64-apple-darwin &&
+        cp dist/cljindent-x86_64-apple-darwin/cljindent upload/cljindent-x86_64-apple-darwin &&
+        cp dist/cljindent-x86_64-pc-windows-msvc/cljindent.exe upload/cljindent-x86_64-pc-windows-msvc.exe &&
+        cp dist/cljindent-x86_64-unknown-linux-gnu/cljindent upload/cljindent-x86_64-unknown-linux-gnu
+    - name: create release
+      uses: softprops/action-gh-release@v1
+      with:
+        prerelease: true
+        tag_name: preview
+        name: Preview
+        files: |
+          upload/cljindent-aarch64-apple-darwin
+          upload/cljindent-x86_64-apple-darwin
+          upload/cljindent-x86_64-pc-windows-msvc.exe
+          upload/cljindent-x86_64-unknown-linux-gnu
